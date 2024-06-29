@@ -25,12 +25,15 @@ Before proceeding, ensure you have Go installed on your system.
 git clone https://github.com/yourusername/store-product-management.git
    
 2. Navigate to the project directory:
+   
 cd store-product-management
 
 3. Build the application:
+   
 go build .
 
 4. Run the application:
+   
 ./store-product-management
 
 
