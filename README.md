@@ -21,21 +21,17 @@ Before proceeding, ensure you have Go installed on your system.
 
 ### Setup
 
-1. Clone the repository to your local machine:
-   
-   git clone https://github.com/yourusername/store-product-management.git
+1. Clone the repository to your local machine:   
+git clone https://github.com/yourusername/store-product-management.git
    
 2. Navigate to the project directory:
-
-   cd store-product-management
+cd store-product-management
 
 3. Build the application:
-
-  go build .
+go build .
 
 4. Run the application:
-
-  ./store-product-management
+./store-product-management
 
 
 ## Authentication
