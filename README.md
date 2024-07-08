@@ -26,7 +26,7 @@ git clone https://github.com/yourusername/store-product-management.git
    
 2. Navigate to the project directory:
    
-cd store-product-management
+cd store-product-management/cmd/store-by-gin-redis-postgress
 
 3. Build the application:
    

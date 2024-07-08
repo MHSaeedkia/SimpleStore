@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"fmt"
@@ -7,11 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/MHSaeedkia/store-by-gin-redis-postgress/internal/module"
+	"github.com/MHSaeedkia/store-by-gin-redis-postgress/internal/product"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func productIsExist(products []Products, name string) bool {
+func productIsExist(products []module.Products, name string) bool {
 	for _, product := range products {
 		if product.ProductName == name {
 			return true
@@ -20,7 +22,7 @@ func productIsExist(products []Products, name string) bool {
 	return false
 }
 
-func insert(c *gin.Context) {
+func Insert(c *gin.Context) {
 	name := strings.ToLower(c.PostForm("name"))
 	count, err := strconv.Atoi(c.PostForm("count"))
 	if err != nil {
@@ -45,7 +47,7 @@ func insert(c *gin.Context) {
 		})
 		return
 	}
-	err, products := getAllProduct()
+	err, products := product.GetAllProduct()
 	if productIsExist(products, name) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprintf("product %s is exist in store , you can update it by end point /updateBN and /updadeBI", name),
@@ -57,7 +59,7 @@ func insert(c *gin.Context) {
 		return
 	}
 
-	err, lastId = insertProduct(lastId, name, price, count)
+	err, lastId = product.InsertProduct(lastId, name, price, count)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprint(fmt.Errorf(err.Error())),
@@ -69,7 +71,7 @@ func insert(c *gin.Context) {
 	})
 }
 
-func updateByName(c *gin.Context) {
+func UpdateByName(c *gin.Context) {
 	name := strings.ToLower(c.PostForm("name"))
 	count, err := strconv.Atoi(c.PostForm("count"))
 	if err != nil {
@@ -94,7 +96,7 @@ func updateByName(c *gin.Context) {
 		})
 		return
 	}
-	err = updateProductByName(name, price, count)
+	err = product.UpdateProductByName(name, price, count)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprint(fmt.Errorf(err.Error())),
@@ -106,7 +108,7 @@ func updateByName(c *gin.Context) {
 	})
 }
 
-func updateById(c *gin.Context) {
+func UpdateById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		fmt.Println(fmt.Errorf(err.Error()))
@@ -136,7 +138,7 @@ func updateById(c *gin.Context) {
 		})
 		return
 	}
-	err = updateProductById(id, name, price, count)
+	err = product.UpdateProductById(id, name, price, count)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprint(fmt.Errorf(err.Error())),
@@ -148,9 +150,9 @@ func updateById(c *gin.Context) {
 	})
 }
 
-func getByName(c *gin.Context) {
+func GetByName(c *gin.Context) {
 	name := strings.ToLower(c.Param("name"))
-	response, err := getProductByName(name)
+	response, err := product.GetProductByName(name)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprint(fmt.Errorf(err.Error())),
@@ -162,7 +164,7 @@ func getByName(c *gin.Context) {
 	}
 }
 
-func getById(c *gin.Context) {
+func GetById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -170,7 +172,7 @@ func getById(c *gin.Context) {
 		})
 		return
 	}
-	response, err := getProductById(id)
+	response, err := product.GetProductById(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprint(fmt.Errorf(err.Error())),
@@ -182,9 +184,9 @@ func getById(c *gin.Context) {
 	}
 }
 
-func removeByName(c *gin.Context) {
+func RemoveByName(c *gin.Context) {
 	name := strings.ToLower(c.Param("name"))
-	err := removeProductByName(name)
+	err := product.RemoveProductByName(name)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprint(fmt.Errorf(err.Error())),
@@ -196,7 +198,7 @@ func removeByName(c *gin.Context) {
 	}
 }
 
-func removeById(c *gin.Context) {
+func RemoveById(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -204,7 +206,7 @@ func removeById(c *gin.Context) {
 		})
 		return
 	}
-	err = removeProductById(id)
+	err = product.RemoveProductById(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"err": fmt.Sprint(fmt.Errorf(err.Error())),
@@ -221,12 +223,12 @@ var (
 	lastId   int
 )
 
-func login(c *gin.Context) {
+func Login(c *gin.Context) {
 	loginVar = true
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Authorized",
 	})
-	id, err := getLastId()
+	id, err := product.GetLastId()
 	if err != nil {
 		fmt.Errorf(err.Error())
 	}
@@ -279,7 +281,7 @@ func checkUser(username, password string) (string, bool) {
 	}
 }
 
-func authMiddleware() gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.URL.String() == "/login" {
 			username := c.Request.Header.Get("username")
